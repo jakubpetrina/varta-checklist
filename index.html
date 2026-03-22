@@ -110,12 +110,19 @@
   }
 
   .meta-grid {
-    display: flex;
-    gap: 8px;
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 6px;
+  }
+
+  @media (max-width: 480px) {
+    .meta-grid {
+      grid-template-columns: 1fr 1fr;
+      gap: 8px 6px;
+    }
   }
 
   .meta-item {
-    flex: 1;
     min-width: 0;
     display: flex;
     flex-direction: column;
@@ -128,13 +135,14 @@
     text-transform: uppercase;
     letter-spacing: 0.3px;
     color: var(--grey-green);
+    white-space: nowrap;
   }
 
   .meta-input {
     font-family: 'Inter', sans-serif;
     font-size: 13px;
     font-weight: 400;
-    padding: 6px 6px;
+    padding: 6px 4px;
     border: 1.5px solid var(--light-grey);
     border-radius: 6px;
     background: var(--off-white);
@@ -142,6 +150,7 @@
     outline: none;
     transition: border-color 0.2s;
     width: 100%;
+    min-width: 0;
   }
 
   .meta-input:focus {
@@ -451,7 +460,7 @@
   <div class="header-top">
     <div>
       <div class="logo">Varta</div>
-      <div class="header-subtitle">Checklist uklidu</div>
+      <div class="header-subtitle">Checklist úklidu</div>
     </div>
     <div class="progress-badge" id="progressBadge">0 / 0</div>
   </div>
@@ -468,15 +477,15 @@
       <input type="date" class="meta-input" id="dateInput">
     </div>
     <div class="meta-item">
-      <span class="meta-label">Cas zacatku</span>
+      <span class="meta-label">Čas začátku</span>
       <input type="time" class="meta-input" id="startTime" placeholder="--:--">
     </div>
     <div class="meta-item">
-      <span class="meta-label">Cas konce</span>
+      <span class="meta-label">Čas konce</span>
       <input type="time" class="meta-input" id="endTime" placeholder="--:--">
     </div>
     <div class="meta-item">
-      <span class="meta-label">Doba uklidu</span>
+      <span class="meta-label">Doba úklidu</span>
       <div class="meta-input duration-display" id="durationDisplay">—</div>
     </div>
   </div>
@@ -484,7 +493,7 @@
 
 <!-- Info -->
 <div class="info-banner">
-  Kvalita je dulezitejsi nez rychlost. Na poradi zalezi &mdash; postupuj shora dolu.
+  Kvalita je důležitější než rychlost. Na pořadí záleží &mdash; postupuj shora dolů.
 </div>
 
 <!-- Checklist sections will be rendered by JS -->
@@ -493,12 +502,12 @@
 <!-- Finish -->
 <div class="finish-section">
   <button class="finish-btn disabled" id="finishBtn" onclick="finishChecklist()">
-    Dokoncit checklist
+    Dokončit checklist
   </button>
 </div>
 
 <div class="reset-section">
-  <button class="reset-btn" onclick="resetChecklist()">Resetovat checklist</button>
+  <button class="reset-btn" onclick="resetChecklist()">Resetovat</button>
 </div>
 
 <!-- Completion overlay -->
@@ -512,97 +521,94 @@
   <div class="completion-detail" id="completionDate"></div>
   <div class="completion-detail" id="completionTime"></div>
   <div class="completion-detail" id="completionDuration"></div>
-  <button class="completion-close" onclick="closeCompletion()">Zavrit</button>
+  <button class="completion-close" onclick="closeCompletion()">Zavřít</button>
 </div>
 
 <script>
 const CHECKLIST_DATA = [
   {
-    section: "Zacatek",
+    section: "Začátek",
     items: [
-      { text: "Poznamenej si, v kolik hodin zacinas", note: "Vyplni cas zacatku nahore" },
-      { text: "Otevrit okno, vyvetrat" },
-      { text: "Umyt nadobi v ruce nebo zapnout mycku", note: "Tim zacit, protoze to trva nejdele" },
+      { text: "Poznamenej si, v kolik hodin začínáš", note: "Vyplň čas začátku nahoře" },
+      { text: "Otevřít okno, vyvětrat" },
+      { text: "Zapni myčku, pokud je hodně špinavého nádobí", note: "Tím začít, protože to trvá nejdéle" },
     ]
   },
   {
-    section: "Posbirat odpad a pripravit na odnos",
+    section: "Posbírat odpad a připravit na odnos",
     items: [
-      { text: "Vsechny kose v kuchyni pod drezem" },
-      { text: "Lednicka" },
-      { text: "Plne odpadkove pytle", note: "Kuchyn nebo u dveri" },
-      { text: "Odpadkovy kos v koupelne" },
+      { text: "Všechny koše v kuchyni pod dřezem" },
+      { text: "Lednička", note: "Neotevřené potraviny dej do ledničky dole v kanceláři" },
+      { text: "Plné odpadkové pytle", note: "Kuchyň nebo u dveří" },
+      { text: "Odpadkový koš v koupelně" },
     ]
   },
   {
-    section: "Kuchyn",
-    note: "Od nejcistejsiho k nejspinavejsimu",
+    section: "Kuchyň",
     items: [
-      { text: "Vyklidit mycku / utrit kde potreba / uklidit nadobi", note: "Vse musi byt ciste a bez fleku", photo: true },
-      { text: "Hrnce do zasuvky, pribory do jine, sklenice do skrinky" },
-      { text: "V krabicce za dvirky mycky cca pet tablet do mycky" },
-      { text: "Cistou uterku povesit na madlo mycky" },
-      { text: "Nova houbicka ke drezu" },
-      { text: "Zkontrolovat lednici vc. mrazaku", note: "Musi byt prazdna, zbytky vyhodit" },
-      { text: "Vymenit vodu v kavovaru za cerstvou a plnou", note: "Celou vylit, plnou nalit" },
-      { text: "Na kazdy den na kazdeho cloveka jedna kapsle kafe", note: "Napr. 2 lidi na 2 dny = 4 kapsle" },
-      { text: "Zkontrolovat mnozstvi jaru", note: "Aspon pulka" },
-      { text: "Umyt / utrit pracovni desku", note: "Hadrikem: kuchyn -> umyvadlo -> sprcha -> zachod -> vyhodit" },
-      { text: "Vynest kose, vyhodit starou houbicku a stary hadrik" },
-      { text: "Dat nove pytle do odpadkovych kosu" },
+      { text: "Umyj nádobí v ruce, pokud není v myčce" },
+      { text: "Vyklidit myčku / utřít kde potřeba / uklidit nádobí", note: "Vše musí být čisté a bez fleků", photo: true },
+      { text: "Hrnce do zásuvky, příbory do jiné, sklenice do skříňky" },
+      { text: "V krabičce za dvířky myčky cca pět tablet do myčky" },
+      { text: "Čistou utěrku pověsit na madlo myčky" },
+      { text: "Nová houbička ke dřezu" },
+      { text: "Vyměnit vodu v kávovaru za čerstvou a plnou", note: "Celou vylít, plnou nalít" },
+      { text: "Na každý den na každého člověka jedna kapsle kávy", note: "Např. 2 lidi na 2 dny = 4 kapsle" },
+      { text: "Zkontrolovat množství jaru", note: "Aspoň půlka" },
+      { text: "Umýt / utřít pracovní desku", note: "Hadříkem: kuchyň → umyvadlo → sprcha → záchod → vyhodit" },
+      { text: "Vynést koše, vyhodit starou houbičku a starý hadřík" },
+      { text: "Dát nové pytle do odpadkových košů" },
     ]
   },
   {
     section: "Koupelna",
     items: [
-      { text: "Umyt umyvadlo" },
-      { text: "Vylestit zrcadlo v koupelne", photo: true },
-      { text: "Umyt sprchovy kout vcetne skel", note: "Zkontrolovat, ze neni mokro kolem koupelny" },
-      { text: "Umyt zachod domestosem, zkontrolovat cistici kulicky" },
-      { text: "Novy toaletni papir vedle zachodu" },
-      { text: "Na kazdy dalsi den pobytu jedna rezervni role WC papiru", note: "Umistit do skrinky v koupelne" },
-      { text: "V koupelne cca pet tablet do pracky", note: "Zbyle tablety dat v pytliku do kose a do sklepa" },
-      { text: "Zkontrolovat sprchovy gel, sampon", note: "Mela by byt aspon pulka" },
-      { text: "Male rucnicky povesit vedle umyvadla" },
-      { text: "Zkontrolovat tekute mydlo u umyvadla", note: "Aspon pulka" },
-      { text: "Vynest kos z koupelny" },
+      { text: "Umýt umyvadlo" },
+      { text: "Vyleštit zrcadlo v koupelně", photo: true },
+      { text: "Vyleštit baterie", note: "Umyvadlo, sprcha včetně hadice" },
+      { text: "Umýt sprchový kout včetně skel", note: "Zkontrolovat, že není mokro kolem koupelny" },
+      { text: "Umýt záchod domestosem, zkontrolovat čisticí kuličky" },
+      { text: "Nový toaletní papír vedle záchodu" },
+      { text: "Na každý další den pobytu jedna rezervní role WC papíru", note: "Umístit do skříňky v koupelně" },
+      { text: "V koupelně cca pět tablet do pračky", note: "Zbylé tablety dát v pytlíku do koše a do sklepa" },
+      { text: "Zkontrolovat sprchový gel, šampon", note: "Měla by být aspoň půlka" },
+      { text: "Malé ručníčky pověsit vedle umyvadla" },
     ]
   },
   {
-    section: "Loznice a obyvak",
+    section: "Pokoj",
     items: [
-      { text: "Povlect postele (prosteradlo, polstare, periny)", photo: true },
-      { text: "Slozene cerstve osusky a velke rucniky polozit na periny k noham" },
-      { text: "Zkontrolovat, ze nekdo neco nezapomnel ve skrini" },
-      { text: "Utrit prach na bilych skrinkach, na parapetu" },
-      { text: "Vylestit zrcadlo v predsini", note: "Jen kdyz je potreba" },
-      { text: "Termostat vedle televize nastavit sipkami na 22 stupnu" },
-      { text: "Zkontrolovat topeni pod oknem", note: "Na 3 pokud jde nekdo bydlet, na 2 pokud nikoliv" },
-      { text: "Ovladac na TV na policku vedle TV" },
-      { text: "Stahnout zaluzie uplne dolu a pootevrit", note: "Mezi vertikalne a horizontalne, ovladac na policku vedle TV" },
+      { text: "Povléct postele (prostěradlo, polštáře, peřiny)", photo: true },
+      { text: "Složené čerstvé osušky a velké ručníky položit na pračku v koupelně" },
+      { text: "Zkontrolovat, že někdo něco nezapomněl ve skříni" },
+      { text: "Utřít prach na bílých skříňkách, na parapetu" },
+      { text: "Vyleštit zrcadlo v předsíni", note: "Jen když je potřeba" },
+      { text: "Termostat vedle televize nastavit šipkami na 22 stupňů" },
+      { text: "Zkontrolovat topení pod oknem", note: "Na 3 pokud jde někdo bydlet, na 2 pokud nikoliv" },
+      { text: "Ovládač na TV na poličku vedle TV" },
+      { text: "Stáhnout žaluzie úplně dolů a pootevřít", note: "Mezi vertikálně a horizontálně, ovládač na poličku vedle TV" },
     ]
   },
   {
-    section: "Textil",
+    section: "Podlahy",
     items: [
-      { text: "Privezt veskery textil", note: "Predlozku ke sprse, povleceni, uterku" },
-      { text: "Privezt nase nadobi" },
+      { text: "Zamést, vyluxovat, včetně podložky v předsíni" },
+      { text: "Očistit rohožku přede dveřmi" },
+      { text: "Vytřít, včetně prahu do bytu", note: "Na závěr, aby sis to nezašlapal" },
+      { text: "Vytřít koupelnu" },
     ]
   },
   {
-    section: "Pred odchodem",
+    section: "Před odchodem",
     items: [
-      { text: "Zamest" },
-      { text: "Ocistit rohozku prede dvermi, pripadne podlozku v predsini" },
-      { text: "Zkontrolovat, ze na podlozce pod bobikem jsou pripravene prezuvky" },
-      { text: "Vytrit, vcetne prahu do bytu", note: "Na zaver, aby sis to nezaslapal" },
-      { text: "Zavrit okno" },
-      { text: "Zkontrolovat, ze jsou v lockboxu klice" },
-      { text: "Zmenit ciselny kod v lockboxu" },
-      { text: "Udelat kontrolni fotku: kuchyn, okno, stul, koupelna ode dveri", photo: true },
-      { text: "Odnest kos s cisticimi prostredky do sklepa" },
-      { text: "Privezt mokry hadr a smetak na vytirani domu" },
-      { text: "Poznamenat si, v kolik hodin jsi skoncil" },
+      { text: "Zkontrolovat, že na podložce pod bobíkem jsou připravené přezůvky" },
+      { text: "Zavřít okno" },
+      { text: "Zkontrolovat, že jsou v lockboxu klíče" },
+      { text: "Změnit číselný kód v lockboxu" },
+      { text: "Udělat kontrolní fotku: kuchyň, okno, stůl, koupelna ode dveří", photo: true },
+      { text: "Odnést koš s čisticími prostředky do sklepa" },
+      { text: "Přivézt mokrý hadr a smeták na vytírání domu" },
+      { text: "Poznamenat si, v kolik hodin jsi skončil" },
     ]
   }
 ];
@@ -702,7 +708,7 @@ function renderChecklist() {
     header.innerHTML = `
       <div>
         <span class="section-title">${section.section}</span>
-        <span class="section-count">${section.items.length} polozek</span>
+        <span class="section-count">${section.items.length} položek</span>
       </div>
       <span class="section-chevron">&#9660;</span>
     `;
@@ -730,7 +736,7 @@ function renderChecklist() {
             <path stroke-linecap="round" stroke-linejoin="round" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"/>
             <circle cx="12" cy="13" r="3"/>
           </svg>
-          Foto (pripraveno)
+          Foto (připraveno)
         </div>`;
       }
 
@@ -824,7 +830,7 @@ function closeCompletion() {
 }
 
 function resetChecklist() {
-  if (!confirm('Opravdu chces resetovat cely checklist?')) return;
+  if (!confirm('Opravdu chceš resetovat celý checklist?')) return;
   localStorage.removeItem(STORAGE_KEY);
   document.querySelectorAll('.check-item.checked').forEach(el => el.classList.remove('checked'));
   document.querySelectorAll('.section.collapsed').forEach(el => el.classList.remove('collapsed'));
