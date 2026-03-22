@@ -1,0 +1,856 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#2a2d2a">
+<title>Varta - Checklist</title>
+<link rel="manifest" href="manifest.json">
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap');
+
+  :root {
+    --white: #ffffff;
+    --off-white: #f5f5f2;
+    --light-grey: #e5e5e0;
+    --medium-grey: #b8bab2;
+    --grey-green: #8a9484;
+    --sage: #6e7e68;
+    --dark-sage: #505e4e;
+    --deep-green: #3d4a3a;
+    --charcoal: #2a2d2a;
+    --black: #1a1a1a;
+    --accent: #5c7a63;
+    --success: #5e8a5e;
+    --taupe: #b5ada5;
+    --warm-grey: #9a948e;
+    --radius: 12px;
+    --radius-sm: 8px;
+  }
+
+  * {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    background: var(--off-white);
+    color: var(--charcoal);
+    min-height: 100vh;
+    min-height: 100dvh;
+    overscroll-behavior: none;
+  }
+
+  /* Header */
+  .header {
+    background: var(--charcoal);
+    color: var(--white);
+    padding: 16px 20px;
+    padding-top: max(16px, env(safe-area-inset-top));
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+
+  .header-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 4px;
+  }
+
+  .logo {
+    font-size: 22px;
+    font-weight: 600;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+  }
+
+  .header-subtitle {
+    font-size: 12px;
+    font-weight: 300;
+    opacity: 0.7;
+    letter-spacing: 0.5px;
+  }
+
+  .progress-badge {
+    background: rgba(255,255,255,0.15);
+    padding: 6px 14px;
+    border-radius: 20px;
+    font-size: 13px;
+    font-weight: 500;
+  }
+
+  .progress-bar-container {
+    margin-top: 12px;
+    background: rgba(255,255,255,0.15);
+    border-radius: 4px;
+    height: 4px;
+    overflow: hidden;
+  }
+
+  .progress-bar {
+    height: 100%;
+    background: var(--white);
+    border-radius: 4px;
+    transition: width 0.4s ease;
+    width: 0%;
+  }
+
+  /* Date & Time Section */
+  .meta-section {
+    padding: 10px 12px;
+    background: var(--white);
+    border-bottom: 1px solid var(--light-grey);
+  }
+
+  .meta-grid {
+    display: flex;
+    gap: 8px;
+  }
+
+  .meta-item {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+
+  .meta-label {
+    font-size: 9px;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+    color: var(--grey-green);
+  }
+
+  .meta-input {
+    font-family: 'Inter', sans-serif;
+    font-size: 13px;
+    font-weight: 400;
+    padding: 6px 6px;
+    border: 1.5px solid var(--light-grey);
+    border-radius: 6px;
+    background: var(--off-white);
+    color: var(--charcoal);
+    outline: none;
+    transition: border-color 0.2s;
+    width: 100%;
+  }
+
+  .meta-input:focus {
+    border-color: var(--sage);
+  }
+
+  .meta-input::placeholder {
+    color: var(--medium-grey);
+  }
+
+  .duration-display {
+    display: flex;
+    align-items: center;
+    color: var(--grey-green);
+    font-size: 13px;
+  }
+
+  /* Sections */
+  .section {
+    margin: 12px 0;
+  }
+
+  .section-header {
+    padding: 12px 20px;
+    background: var(--white);
+    border-bottom: 1px solid var(--light-grey);
+    border-top: 1px solid var(--light-grey);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    cursor: pointer;
+    user-select: none;
+  }
+
+  .section-title {
+    font-size: 13px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: var(--dark-sage);
+  }
+
+  .section-count {
+    font-size: 12px;
+    color: var(--grey-green);
+    font-weight: 400;
+  }
+
+  .section-chevron {
+    font-size: 14px;
+    color: var(--grey-green);
+    transition: transform 0.3s;
+  }
+
+  .section.collapsed .section-chevron {
+    transform: rotate(-90deg);
+  }
+
+  .section.collapsed .checklist {
+    display: none;
+  }
+
+  /* Checklist items */
+  .checklist {
+    background: var(--white);
+  }
+
+  .check-item {
+    display: flex;
+    align-items: flex-start;
+    padding: 14px 20px;
+    border-bottom: 1px solid var(--light-grey);
+    gap: 14px;
+    transition: background 0.2s;
+    cursor: pointer;
+    user-select: none;
+  }
+
+  .check-item:active {
+    background: var(--off-white);
+  }
+
+  .check-item.checked {
+    background: rgba(107, 158, 107, 0.04);
+  }
+
+  .check-item.checked .check-text {
+    color: var(--grey-green);
+  }
+
+  .checkbox {
+    flex-shrink: 0;
+    width: 24px;
+    height: 24px;
+    border: 2px solid var(--medium-grey);
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+    margin-top: 1px;
+  }
+
+  .check-item.checked .checkbox {
+    background: var(--dark-sage);
+    border-color: var(--dark-sage);
+  }
+
+  .checkbox svg {
+    width: 14px;
+    height: 14px;
+    opacity: 0;
+    transition: opacity 0.2s;
+  }
+
+  .check-item.checked .checkbox svg {
+    opacity: 1;
+  }
+
+  .check-content {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .check-text {
+    font-size: 15px;
+    line-height: 1.4;
+    color: var(--charcoal);
+    transition: color 0.2s;
+  }
+
+  .check-note {
+    font-size: 12px;
+    color: var(--grey-green);
+    margin-top: 3px;
+    line-height: 1.3;
+  }
+
+  .check-order {
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--medium-grey);
+    min-width: 20px;
+    text-align: center;
+    margin-top: 3px;
+  }
+
+  .photo-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+    font-size: 10px;
+    font-weight: 500;
+    color: var(--sage);
+    background: rgba(107, 127, 111, 0.1);
+    padding: 2px 7px;
+    border-radius: 4px;
+    margin-top: 4px;
+  }
+
+  .photo-badge svg {
+    width: 10px;
+    height: 10px;
+  }
+
+  /* Finish button */
+  .finish-section {
+    padding: 20px;
+    padding-bottom: max(20px, calc(env(safe-area-inset-bottom) + 20px));
+  }
+
+  .finish-btn {
+    width: 100%;
+    padding: 16px;
+    border: none;
+    border-radius: var(--radius);
+    font-family: 'Inter', sans-serif;
+    font-size: 16px;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    cursor: pointer;
+    transition: all 0.2s;
+    text-transform: uppercase;
+  }
+
+  .finish-btn.disabled {
+    background: var(--light-grey);
+    color: var(--medium-grey);
+    pointer-events: none;
+  }
+
+  .finish-btn.ready {
+    background: var(--dark-sage);
+    color: var(--white);
+  }
+
+  .finish-btn.ready:active {
+    transform: scale(0.98);
+    background: var(--deep-green);
+  }
+
+  /* Completion screen */
+  .completion-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: var(--charcoal);
+    z-index: 200;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 40px;
+    text-align: center;
+    color: var(--white);
+    animation: fadeIn 0.3s ease;
+  }
+
+  .completion-overlay.visible {
+    display: flex;
+  }
+
+  .completion-icon {
+    width: 80px;
+    height: 80px;
+    border: 3px solid rgba(255,255,255,0.3);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 24px;
+  }
+
+  .completion-icon svg {
+    width: 40px;
+    height: 40px;
+  }
+
+  .completion-title {
+    font-size: 24px;
+    font-weight: 600;
+    margin-bottom: 8px;
+  }
+
+  .completion-detail {
+    font-size: 14px;
+    opacity: 0.7;
+    margin-bottom: 4px;
+  }
+
+  .completion-close {
+    margin-top: 40px;
+    padding: 14px 40px;
+    border: 1.5px solid rgba(255,255,255,0.3);
+    border-radius: var(--radius);
+    background: transparent;
+    color: var(--white);
+    font-family: 'Inter', sans-serif;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+  }
+
+  .completion-close:active {
+    background: rgba(255,255,255,0.1);
+  }
+
+  /* Reset button */
+  .reset-section {
+    padding: 0 20px 12px;
+    text-align: center;
+  }
+
+  .reset-btn {
+    background: none;
+    border: none;
+    font-family: 'Inter', sans-serif;
+    font-size: 12px;
+    color: var(--medium-grey);
+    cursor: pointer;
+    padding: 8px 16px;
+    text-decoration: underline;
+    text-underline-offset: 2px;
+  }
+
+  @keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+
+  /* Info banner */
+  .info-banner {
+    background: rgba(80, 94, 78, 0.06);
+    border-left: 3px solid var(--dark-sage);
+    padding: 12px 16px;
+    margin: 12px 20px;
+    border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+    font-size: 13px;
+    line-height: 1.5;
+    color: var(--deep-green);
+  }
+</style>
+</head>
+<body>
+
+<!-- Header -->
+<div class="header">
+  <div class="header-top">
+    <div>
+      <div class="logo">Varta</div>
+      <div class="header-subtitle">Checklist uklidu</div>
+    </div>
+    <div class="progress-badge" id="progressBadge">0 / 0</div>
+  </div>
+  <div class="progress-bar-container">
+    <div class="progress-bar" id="progressBar"></div>
+  </div>
+</div>
+
+<!-- Date & Time -->
+<div class="meta-section">
+  <div class="meta-grid">
+    <div class="meta-item">
+      <span class="meta-label">Datum</span>
+      <input type="date" class="meta-input" id="dateInput">
+    </div>
+    <div class="meta-item">
+      <span class="meta-label">Cas zacatku</span>
+      <input type="time" class="meta-input" id="startTime" placeholder="--:--">
+    </div>
+    <div class="meta-item">
+      <span class="meta-label">Cas konce</span>
+      <input type="time" class="meta-input" id="endTime" placeholder="--:--">
+    </div>
+    <div class="meta-item">
+      <span class="meta-label">Doba uklidu</span>
+      <div class="meta-input duration-display" id="durationDisplay">—</div>
+    </div>
+  </div>
+</div>
+
+<!-- Info -->
+<div class="info-banner">
+  Kvalita je dulezitejsi nez rychlost. Na poradi zalezi &mdash; postupuj shora dolu.
+</div>
+
+<!-- Checklist sections will be rendered by JS -->
+<div id="checklistContainer"></div>
+
+<!-- Finish -->
+<div class="finish-section">
+  <button class="finish-btn disabled" id="finishBtn" onclick="finishChecklist()">
+    Dokoncit checklist
+  </button>
+</div>
+
+<div class="reset-section">
+  <button class="reset-btn" onclick="resetChecklist()">Resetovat checklist</button>
+</div>
+
+<!-- Completion overlay -->
+<div class="completion-overlay" id="completionOverlay">
+  <div class="completion-icon">
+    <svg fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+      <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/>
+    </svg>
+  </div>
+  <div class="completion-title">Hotovo!</div>
+  <div class="completion-detail" id="completionDate"></div>
+  <div class="completion-detail" id="completionTime"></div>
+  <div class="completion-detail" id="completionDuration"></div>
+  <button class="completion-close" onclick="closeCompletion()">Zavrit</button>
+</div>
+
+<script>
+const CHECKLIST_DATA = [
+  {
+    section: "Zacatek",
+    items: [
+      { text: "Poznamenej si, v kolik hodin zacinas", note: "Vyplni cas zacatku nahore" },
+      { text: "Otevrit okno, vyvetrat" },
+      { text: "Umyt nadobi v ruce nebo zapnout mycku", note: "Tim zacit, protoze to trva nejdele" },
+    ]
+  },
+  {
+    section: "Posbirat odpad a pripravit na odnos",
+    items: [
+      { text: "Vsechny kose v kuchyni pod drezem" },
+      { text: "Lednicka" },
+      { text: "Plne odpadkove pytle", note: "Kuchyn nebo u dveri" },
+      { text: "Odpadkovy kos v koupelne" },
+    ]
+  },
+  {
+    section: "Kuchyn",
+    note: "Od nejcistejsiho k nejspinavejsimu",
+    items: [
+      { text: "Vyklidit mycku / utrit kde potreba / uklidit nadobi", note: "Vse musi byt ciste a bez fleku", photo: true },
+      { text: "Hrnce do zasuvky, pribory do jine, sklenice do skrinky" },
+      { text: "V krabicce za dvirky mycky cca pet tablet do mycky" },
+      { text: "Cistou uterku povesit na madlo mycky" },
+      { text: "Nova houbicka ke drezu" },
+      { text: "Zkontrolovat lednici vc. mrazaku", note: "Musi byt prazdna, zbytky vyhodit" },
+      { text: "Vymenit vodu v kavovaru za cerstvou a plnou", note: "Celou vylit, plnou nalit" },
+      { text: "Na kazdy den na kazdeho cloveka jedna kapsle kafe", note: "Napr. 2 lidi na 2 dny = 4 kapsle" },
+      { text: "Zkontrolovat mnozstvi jaru", note: "Aspon pulka" },
+      { text: "Umyt / utrit pracovni desku", note: "Hadrikem: kuchyn -> umyvadlo -> sprcha -> zachod -> vyhodit" },
+      { text: "Vynest kose, vyhodit starou houbicku a stary hadrik" },
+      { text: "Dat nove pytle do odpadkovych kosu" },
+    ]
+  },
+  {
+    section: "Koupelna",
+    items: [
+      { text: "Umyt umyvadlo" },
+      { text: "Vylestit zrcadlo v koupelne", photo: true },
+      { text: "Umyt sprchovy kout vcetne skel", note: "Zkontrolovat, ze neni mokro kolem koupelny" },
+      { text: "Umyt zachod domestosem, zkontrolovat cistici kulicky" },
+      { text: "Novy toaletni papir vedle zachodu" },
+      { text: "Na kazdy dalsi den pobytu jedna rezervni role WC papiru", note: "Umistit do skrinky v koupelne" },
+      { text: "V koupelne cca pet tablet do pracky", note: "Zbyle tablety dat v pytliku do kose a do sklepa" },
+      { text: "Zkontrolovat sprchovy gel, sampon", note: "Mela by byt aspon pulka" },
+      { text: "Male rucnicky povesit vedle umyvadla" },
+      { text: "Zkontrolovat tekute mydlo u umyvadla", note: "Aspon pulka" },
+      { text: "Vynest kos z koupelny" },
+    ]
+  },
+  {
+    section: "Loznice a obyvak",
+    items: [
+      { text: "Povlect postele (prosteradlo, polstare, periny)", photo: true },
+      { text: "Slozene cerstve osusky a velke rucniky polozit na periny k noham" },
+      { text: "Zkontrolovat, ze nekdo neco nezapomnel ve skrini" },
+      { text: "Utrit prach na bilych skrinkach, na parapetu" },
+      { text: "Vylestit zrcadlo v predsini", note: "Jen kdyz je potreba" },
+      { text: "Termostat vedle televize nastavit sipkami na 22 stupnu" },
+      { text: "Zkontrolovat topeni pod oknem", note: "Na 3 pokud jde nekdo bydlet, na 2 pokud nikoliv" },
+      { text: "Ovladac na TV na policku vedle TV" },
+      { text: "Stahnout zaluzie uplne dolu a pootevrit", note: "Mezi vertikalne a horizontalne, ovladac na policku vedle TV" },
+    ]
+  },
+  {
+    section: "Textil",
+    items: [
+      { text: "Privezt veskery textil", note: "Predlozku ke sprse, povleceni, uterku" },
+      { text: "Privezt nase nadobi" },
+    ]
+  },
+  {
+    section: "Pred odchodem",
+    items: [
+      { text: "Zamest" },
+      { text: "Ocistit rohozku prede dvermi, pripadne podlozku v predsini" },
+      { text: "Zkontrolovat, ze na podlozce pod bobikem jsou pripravene prezuvky" },
+      { text: "Vytrit, vcetne prahu do bytu", note: "Na zaver, aby sis to nezaslapal" },
+      { text: "Zavrit okno" },
+      { text: "Zkontrolovat, ze jsou v lockboxu klice" },
+      { text: "Zmenit ciselny kod v lockboxu" },
+      { text: "Udelat kontrolni fotku: kuchyn, okno, stul, koupelna ode dveri", photo: true },
+      { text: "Odnest kos s cisticimi prostredky do sklepa" },
+      { text: "Privezt mokry hadr a smetak na vytirani domu" },
+      { text: "Poznamenat si, v kolik hodin jsi skoncil" },
+    ]
+  }
+];
+
+const STORAGE_KEY = 'varta_checklist';
+
+function loadState() {
+  try {
+    const saved = localStorage.getItem(STORAGE_KEY);
+    return saved ? JSON.parse(saved) : null;
+  } catch { return null; }
+}
+
+function saveState() {
+  const state = {
+    date: document.getElementById('dateInput').value,
+    startTime: document.getElementById('startTime').value,
+    endTime: document.getElementById('endTime').value,
+    checked: getCheckedIndices(),
+    collapsed: getCollapsedSections(),
+  };
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+}
+
+function updateDuration() {
+  const start = document.getElementById('startTime').value;
+  const end = document.getElementById('endTime').value;
+  const display = document.getElementById('durationDisplay');
+  if (!start || !end) { display.textContent = '—'; return; }
+  const [sh, sm] = start.split(':').map(Number);
+  const [eh, em] = end.split(':').map(Number);
+  let diff = (eh * 60 + em) - (sh * 60 + sm);
+  if (diff < 0) diff += 24 * 60;
+  const h = Math.floor(diff / 60);
+  const m = diff % 60;
+  display.textContent = h > 0 ? `${h} h ${m} min` : `${m} min`;
+}
+
+function getCheckedIndices() {
+  const indices = [];
+  document.querySelectorAll('.check-item.checked').forEach(el => {
+    indices.push(el.dataset.index);
+  });
+  return indices;
+}
+
+function getCollapsedSections() {
+  const collapsed = [];
+  document.querySelectorAll('.section.collapsed').forEach(el => {
+    collapsed.push(el.dataset.section);
+  });
+  return collapsed;
+}
+
+function getTotalItems() {
+  let total = 0;
+  CHECKLIST_DATA.forEach(s => total += s.items.length);
+  return total;
+}
+
+function updateProgress() {
+  const total = getTotalItems();
+  const checked = document.querySelectorAll('.check-item.checked').length;
+  document.getElementById('progressBadge').textContent = `${checked} / ${total}`;
+  document.getElementById('progressBar').style.width = `${(checked / total) * 100}%`;
+
+  const btn = document.getElementById('finishBtn');
+  if (checked === total) {
+    btn.className = 'finish-btn ready';
+  } else {
+    btn.className = 'finish-btn disabled';
+  }
+}
+
+function toggleItem(el) {
+  el.classList.toggle('checked');
+  updateProgress();
+  saveState();
+}
+
+function toggleSection(sectionEl) {
+  sectionEl.classList.toggle('collapsed');
+  saveState();
+}
+
+function renderChecklist() {
+  const container = document.getElementById('checklistContainer');
+  let globalIndex = 0;
+
+  CHECKLIST_DATA.forEach((section, si) => {
+    const sectionEl = document.createElement('div');
+    sectionEl.className = 'section';
+    sectionEl.dataset.section = si;
+
+    const header = document.createElement('div');
+    header.className = 'section-header';
+    header.innerHTML = `
+      <div>
+        <span class="section-title">${section.section}</span>
+        <span class="section-count">${section.items.length} polozek</span>
+      </div>
+      <span class="section-chevron">&#9660;</span>
+    `;
+    header.onclick = () => toggleSection(sectionEl);
+    sectionEl.appendChild(header);
+
+    const list = document.createElement('div');
+    list.className = 'checklist';
+
+    section.items.forEach((item, ii) => {
+      const el = document.createElement('div');
+      el.className = 'check-item';
+      el.dataset.index = `${si}-${ii}`;
+      el.onclick = () => toggleItem(el);
+
+      let noteHtml = '';
+      if (item.note) {
+        noteHtml = `<div class="check-note">${item.note}</div>`;
+      }
+
+      let photoHtml = '';
+      if (item.photo) {
+        photoHtml = `<div class="photo-badge">
+          <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"/>
+            <circle cx="12" cy="13" r="3"/>
+          </svg>
+          Foto (pripraveno)
+        </div>`;
+      }
+
+      el.innerHTML = `
+        <span class="check-order">${globalIndex + 1}</span>
+        <div class="checkbox">
+          <svg fill="none" stroke="white" stroke-width="3" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/>
+          </svg>
+        </div>
+        <div class="check-content">
+          <div class="check-text">${item.text}</div>
+          ${noteHtml}
+          ${photoHtml}
+        </div>
+      `;
+
+      list.appendChild(el);
+      globalIndex++;
+    });
+
+    sectionEl.appendChild(list);
+    container.appendChild(sectionEl);
+  });
+}
+
+function restoreState() {
+  const state = loadState();
+  if (!state) {
+    document.getElementById('dateInput').valueAsDate = new Date();
+    return;
+  }
+
+  if (state.date) document.getElementById('dateInput').value = state.date;
+  if (state.startTime) document.getElementById('startTime').value = state.startTime;
+  if (state.endTime) document.getElementById('endTime').value = state.endTime;
+
+  if (state.checked) {
+    state.checked.forEach(idx => {
+      const el = document.querySelector(`.check-item[data-index="${idx}"]`);
+      if (el) el.classList.add('checked');
+    });
+  }
+
+  if (state.collapsed) {
+    state.collapsed.forEach(si => {
+      const el = document.querySelector(`.section[data-section="${si}"]`);
+      if (el) el.classList.add('collapsed');
+    });
+  }
+}
+
+function finishChecklist() {
+  const total = getTotalItems();
+  const checked = document.querySelectorAll('.check-item.checked').length;
+  if (checked < total) return;
+
+  const date = document.getElementById('dateInput').value;
+  const startTime = document.getElementById('startTime').value;
+  const endTime = document.getElementById('endTime').value;
+
+  // Auto-fill end time if empty
+  if (!endTime) {
+    const now = new Date();
+    const nowTime = `${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
+    document.getElementById('endTime').value = nowTime;
+    updateDuration();
+    saveState();
+  }
+
+  const finalEnd = document.getElementById('endTime').value;
+
+  document.getElementById('completionDate').textContent = `Datum: ${formatDate(date)}`;
+  document.getElementById('completionTime').textContent = `${startTime || '??:??'} — ${finalEnd || '??:??'}`;
+
+  if (startTime && finalEnd) {
+    const [sh, sm] = startTime.split(':').map(Number);
+    const [eh, em] = finalEnd.split(':').map(Number);
+    let diff = (eh * 60 + em) - (sh * 60 + sm);
+    if (diff < 0) diff += 24 * 60;
+    const h = Math.floor(diff / 60);
+    const m = diff % 60;
+    document.getElementById('completionDuration').textContent = `Doba: ${h > 0 ? h + ' h ' : ''}${m} min`;
+  }
+
+  document.getElementById('completionOverlay').classList.add('visible');
+}
+
+function closeCompletion() {
+  document.getElementById('completionOverlay').classList.remove('visible');
+}
+
+function resetChecklist() {
+  if (!confirm('Opravdu chces resetovat cely checklist?')) return;
+  localStorage.removeItem(STORAGE_KEY);
+  document.querySelectorAll('.check-item.checked').forEach(el => el.classList.remove('checked'));
+  document.querySelectorAll('.section.collapsed').forEach(el => el.classList.remove('collapsed'));
+  document.getElementById('dateInput').valueAsDate = new Date();
+  document.getElementById('startTime').value = '';
+  document.getElementById('endTime').value = '';
+  document.getElementById('durationDisplay').textContent = '—';
+  updateProgress();
+}
+
+function formatDate(dateStr) {
+  if (!dateStr) return '—';
+  const [y, m, d] = dateStr.split('-');
+  return `${d}. ${m}. ${y}`;
+}
+
+// Auto-save on input change
+document.getElementById('dateInput').addEventListener('change', saveState);
+document.getElementById('startTime').addEventListener('change', () => { saveState(); updateDuration(); });
+document.getElementById('endTime').addEventListener('change', () => { saveState(); updateDuration(); });
+
+// Init
+renderChecklist();
+restoreState();
+updateProgress();
+updateDuration();
+</script>
+</body>
+</html>
