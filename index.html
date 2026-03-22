@@ -104,21 +104,21 @@
 
   /* Date & Time Section */
   .meta-section {
-    padding: 10px 12px;
+    padding: 12px 16px;
     background: var(--white);
     border-bottom: 1px solid var(--light-grey);
   }
 
   .meta-grid {
     display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: 6px;
+    grid-template-columns: 1fr 1fr 1fr 1fr;
+    gap: 8px;
   }
 
-  @media (max-width: 480px) {
+  @media (max-width: 500px) {
     .meta-grid {
       grid-template-columns: 1fr 1fr;
-      gap: 8px 6px;
+      gap: 10px 8px;
     }
   }
 
@@ -126,11 +126,11 @@
     min-width: 0;
     display: flex;
     flex-direction: column;
-    gap: 2px;
+    gap: 4px;
   }
 
   .meta-label {
-    font-size: 9px;
+    font-size: 10px;
     font-weight: 500;
     text-transform: uppercase;
     letter-spacing: 0.3px;
@@ -139,18 +139,23 @@
   }
 
   .meta-input {
-    font-family: 'Inter', sans-serif;
-    font-size: 13px;
+    font-family: 'Inter', -apple-system, sans-serif;
+    font-size: 14px;
     font-weight: 400;
-    padding: 6px 4px;
+    padding: 8px 10px;
     border: 1.5px solid var(--light-grey);
-    border-radius: 6px;
+    border-radius: 8px;
     background: var(--off-white);
     color: var(--charcoal);
     outline: none;
     transition: border-color 0.2s;
     width: 100%;
     min-width: 0;
+    height: 40px;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+    box-sizing: border-box;
   }
 
   .meta-input:focus {
@@ -161,11 +166,17 @@
     color: var(--medium-grey);
   }
 
+  .meta-input[type="date"],
+  .meta-input[type="time"] {
+    line-height: 1;
+  }
+
   .duration-display {
     display: flex;
     align-items: center;
     color: var(--grey-green);
-    font-size: 13px;
+    font-size: 14px;
+    height: 40px;
   }
 
   /* Sections */
